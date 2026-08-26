@@ -8,7 +8,7 @@ def check_price(price):
     else:
         print(price)
     return price
-    
+    #1
 def check_discount(price):
     if price >= 500:
        print(price * 0.50)
