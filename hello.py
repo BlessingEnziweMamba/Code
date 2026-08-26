@@ -1,1 +1,4 @@
-print("hello world")
+#deleted
+
+age = 2
+print(age)
