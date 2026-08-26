@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Grade Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:        #0b0e14;
+    --surface:   #13171f;
+    --card:      #1a1f2b;
+    --border:    #252c3b;
+    --accent:    #f0c040;
+    --accent2:   #4fd1c5;
+    --danger:    #f87171;
+    --text:      #e8eaf0;
+    --muted:     #6b7591;
+    --radius:    12px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── grid background ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(240,192,64,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(240,192,64,.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── layout ── */
+  .app { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  /* ── header ── */
+  header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.5rem; margin-bottom: 2rem;
+    animation: fadeDown .5s ease both;
+  }
+  .logo-block h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 800;
+    letter-spacing: -.02em;
+    line-height: 1;
+  }
+  .logo-block h1 span { color: var(--accent); }
+  .logo-block p { color: var(--muted); font-size: .75rem; margin-top: .35rem; }
+  .gpa-badge {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: .45rem 1.1rem;
+    text-align: center;
+  }
+  .gpa-badge .label { font-size: .65rem; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+  .gpa-badge .value { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--accent); line-height: 1.1; }
+
+  /* ── tabs ── */
+  .tabs { display: flex; gap: .5rem; margin-bottom: 1.5rem; animation: fadeDown .5s .1s ease both; }
+  .tab {
+    padding: .5rem 1.2rem; border-radius: 999px; border: 1px solid var(--border);
+    background: transparent; color: var(--muted); font-family: 'DM Mono', monospace;
+    font-size: .8rem; cursor: pointer; transition: all .2s;
+  }
+  .tab:hover { border-color: var(--accent); color: var(--accent); }
+  .tab.active { background: var(--accent); border-color: var(--accent); color: #0b0e14; font-weight: 500; }
+
+  /* ── panels ── */
+  .panel { display: none; animation: fadeUp .35s ease both; }
+  .panel.active { display: block; }
+
+  /* ── cards ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: .85rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em;
+    color: var(--muted); margin-bottom: 1rem;
+  }
+
+  /* ── inputs ── */
+  .field { margin-bottom: .9rem; }
+  .field label { display: block; font-size: .7rem; color: var(--muted); margin-bottom: .35rem; text-transform: uppercase; letter-spacing: .08em; }
+  .field input, .field select {
+    width: 100%; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); font-family: 'DM Mono', monospace;
+    font-size: .9rem; padding: .65rem .9rem;
+    outline: none; transition: border-color .2s;
+  }
+  .field input:focus, .field select:focus { border-color: var(--accent); }
+  .field select option { background: var(--surface); }
+
+  /* ── buttons ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: .4rem;
+    padding: .6rem 1.3rem; border-radius: 8px; border: none;
+    font-family: 'DM Mono', monospace; font-size: .85rem;
+    cursor: pointer; transition: all .18s; font-weight: 500;
+  }
+  .btn-primary { background: var(--accent); color: #0b0e14; }
+  .btn-primary:hover { background: #ffd060; transform: translateY(-1px); }
+  .btn-danger  { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
+  .btn-danger:hover  { background: var(--danger); color: #fff; }
+  .btn-ghost   { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+  .btn-ghost:hover { border-color: var(--accent2); color: var(--accent2); }
+  .btn-sm { padding: .35rem .8rem; font-size: .75rem; }
+  .btn-row { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: .5rem; }
+
+  /* ── subject grid ── */
+  .subject-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+  .subject-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.2rem;
+    cursor: pointer;
+    transition: border-color .2s, transform .2s;
+    position: relative; overflow: hidden;
+  }
+  .subject-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .subject-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--accent); opacity: 0; transition: opacity .2s;
+  }
+  .subject-card:hover::before { opacity: 1; }
+  .subject-card .name { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: .5rem; }
+  .subject-card .meta { font-size: .72rem; color: var(--muted); }
+  .subject-card .avg {
+    font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800;
+    color: var(--accent); line-height: 1; margin: .5rem 0 .2rem;
+  }
+  .subject-card .grade-chip {
+    display: inline-block; padding: .15rem .55rem;
+    border-radius: 4px; font-size: .7rem; font-weight: 600;
+    background: var(--card); border: 1px solid var(--border);
+  }
+  .subject-card .del-btn {
+    position: absolute; top: .8rem; right: .8rem;
+    background: none; border: none; color: var(--muted);
+    font-size: 1rem; cursor: pointer; transition: color .2s; line-height: 1;
+  }
+  .subject-card .del-btn:hover { color: var(--danger); }
+
+  /* ── marks list ── */
+  .marks-list { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
+  .mark-chip {
+    display: flex; align-items: center; gap: .35rem;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: .3rem .7rem; font-size: .8rem;
+  }
+  .mark-chip button {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: .8rem; line-height: 1;
+    transition: color .2s; padding: 0;
+  }
+  .mark-chip button:hover { color: var(--danger); }
+
+  /* ── summary table ── */
+  .summary-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  .summary-table th {
+    text-align: left; padding: .6rem .8rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted); font-weight: 400; text-transform: uppercase;
+    letter-spacing: .08em; font-size: .68rem;
+  }
+  .summary-table td { padding: .75rem .8rem; border-bottom: 1px solid var(--border); }
+  .summary-table tr:last-child td { border-bottom: none; }
+  .summary-table tr:hover td { background: rgba(240,192,64,.03); }
+  .gpa-pill {
+    display: inline-block; padding: .15rem .6rem;
+    border-radius: 999px; font-size: .72rem; font-weight: 600;
+  }
+  .grade-A { background: rgba(79,209,197,.15); color: var(--accent2); }
+  .grade-B { background: rgba(240,192,64,.15); color: var(--accent); }
+  .grade-C { background: rgba(167,139,250,.15); color: #a78bfa; }
+  .grade-D { background: rgba(251,191,36,.15); color: #fbbf24; }
+  .grade-F { background: rgba(248,113,113,.15); color: var(--danger); }
+
+  /* ── detail view ── */
+  .detail-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+  .back-btn {
+    background: none; border: 1px solid var(--border);
+    color: var(--muted); border-radius: 8px; padding: .4rem .8rem;
+    font-family: 'DM Mono', monospace; font-size: .78rem;
+    cursor: pointer; transition: all .2s;
+  }
+  .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .detail-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  .stat-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1rem; text-align: center;
+  }
+  .stat-box .s-label { font-size: .65rem; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+  .stat-box .s-value { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; color: var(--accent); line-height: 1.1; margin-top: .2rem; }
+
+  /* ── empty state ── */
+  .empty {
+    text-align: center; padding: 3rem 1rem;
+    color: var(--muted); font-size: .85rem; border: 1px dashed var(--border);
+    border-radius: var(--radius);
+  }
+  .empty .icon { font-size: 2.5rem; display: block; margin-bottom: .75rem; }
+
+  /* ── toast ── */
+  #toast {
+    position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--card); border: 1px solid var(--border);
+    color: var(--text); font-family: 'DM Mono', monospace; font-size: .82rem;
+    padding: .65rem 1.4rem; border-radius: 999px;
+    transition: transform .3s ease; z-index: 999;
+    white-space: nowrap; pointer-events: none;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── modal ── */
+  .modal-bg {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.6); backdrop-filter: blur(4px);
+    z-index: 100; align-items: center; justify-content: center;
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.8rem; width: min(420px, 90vw);
+    animation: fadeUp .25s ease both;
+  }
+  .modal h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 1.2rem; }
+
+  /* ── animations ── */
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-14px);} to { opacity:1; transform:none;} }
+  @keyframes fadeUp   { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none;} }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header>
+    <div class="logo-block">
+      <h1>Grade<span>Track</span></h1>
+      <p>Your personal academic dashboard</p>
+    </div>
+    <div class="gpa-badge">
+      <div class="label">Overall GPA</div>
+      <div class="value" id="headerGpa">—</div>
+    </div>
+  </header>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="tab" onclick="switchTab('summary')">Summary</button>
+    <button class="tab" onclick="switchTab('add')">+ Add Subject</button>
+  </div>
+
+  <!-- Dashboard Panel -->
+  <div id="panel-dashboard" class="panel active">
+    <div id="subjectGrid" class="subject-grid"></div>
+    <div id="emptyDash" class="empty" style="display:none;">
+      <span class="icon">📚</span>
+      No subjects yet. Hit <strong>+ Add Subject</strong> to get started.
+    </div>
+  </div>
+
+  <!-- Summary Panel -->
+  <div id="panel-summary" class="panel">
+    <div class="card">
+      <div class="card-title">Full Summary</div>
+      <div id="summaryContent"></div>
+    </div>
+  </div>
+
+  <!-- Add Subject Panel -->
+  <div id="panel-add" class="panel">
+    <div class="card">
+      <div class="card-title">Add New Subject</div>
+      <div class="field">
+        <label>Subject Name</label>
+        <input type="text" id="newSubjectName" placeholder="e.g. Mathematics, Physics..." />
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="addSubject()">Add Subject</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Panel -->
+  <div id="panel-detail" class="panel">
+    <div class="detail-header">
+      <button class="back-btn" onclick="backToDash()">← Back</button>
+      <h2 id="detailTitle" style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;"></h2>
+    </div>
+    <div class="detail-stats">
+      <div class="stat-box"><div class="s-label">Average</div><div class="s-value" id="dAvg">—</div></div>
+      <div class="stat-box"><div class="s-label">Grade</div><div class="s-value" id="dGrade">—</div></div>
+      <div class="stat-box"><div class="s-label">GPA</div><div class="s-value" id="dGpa">—</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Assessments</div>
+      <div id="marksList" class="marks-list"></div>
+      <div id="noMarks" style="color:var(--muted);font-size:.8rem;display:none;">No marks yet.</div>
+      <div class="field" style="margin-top:1.2rem;">
+        <label>Add Mark (%)</label>
+        <input type="number" id="newMark" placeholder="0 – 100" min="0" max="100" />
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="addMark()">Add Mark</button>
+        <button class="btn btn-ghost btn-sm" onclick="clearMarks()">Clear All Marks</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCurrentSubject()">Delete Subject</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- Confirm Modal -->
+<div class="modal-bg" id="confirmModal">
+  <div class="modal">
+    <h3 id="confirmTitle">Are you sure?</h3>
+    <p id="confirmMsg" style="color:var(--muted);font-size:.85rem;margin-bottom:1.5rem;"></p>
+    <div class="btn-row">
+      <button class="btn btn-danger" id="confirmYes">Yes, proceed</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────
+let data = JSON.parse(localStorage.getItem('gradeTracker') || '{}');
+let currentSubject = null;
+
+// ── Persist ────────────────────────────────────────────────
+function save() { localStorage.setItem('gradeTracker', JSON.stringify(data)); }
+
+// ── Grade helpers ──────────────────────────────────────────
+function avg(marks) {
+  if (!marks.length) return 0;
+  return Math.round((marks.reduce((a,b)=>a+b,0)/marks.length)*100)/100;
+}
+function letterGrade(a) {
+  if (a>=80) return 'A'; if (a>=70) return 'B';
+  if (a>=60) return 'C'; if (a>=50) return 'D'; return 'F';
+}
+function gpaPoints(a) {
+  if (a>=80) return 4.0; if (a>=70) return 3.0;
+  if (a>=60) return 2.0; if (a>=50) return 1.0; return 0.0;
+}
+function overallGpa() {
+  const subjects = Object.values(data);
+  if (!subjects.length) return null;
+  const total = subjects.reduce((s, marks) => s + gpaPoints(avg(marks)), 0);
+  return Math.round((total / subjects.length)*100)/100;
+}
+
+// ── Tabs ───────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'summary')   renderSummary();
+}
+
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+// ── Dashboard ──────────────────────────────────────────────
+function renderDashboard() {
+  const grid = document.getElementById('subjectGrid');
+  const empty = document.getElementById('emptyDash');
+  const keys = Object.keys(data);
+  updateHeaderGpa();
+
+  if (!keys.length) {
+    grid.innerHTML = ''; empty.style.display = 'block'; return;
+  }
+  empty.style.display = 'none';
+
+  grid.innerHTML = keys.map(name => {
+    const a = avg(data[name]);
+    const g = letterGrade(a);
+    const count = data[name].length;
+    return `
+      <div class="subject-card" onclick="openDetail('${escHtml(name)}')">
+        <button class="del-btn" onclick="event.stopPropagation();confirmDelete('${escHtml(name)}')" title="Delete">✕</button>
+        <div class="name">${escHtml(name)}</div>
+        <div class="avg">${count ? a + '%' : '—'}</div>
+        <span class="grade-chip grade-${g}">${g}</span>
+        <div class="meta" style="margin-top:.5rem;">${count} assessment${count!==1?'s':''}</div>
+      </div>`;
+  }).join('');
+}
+
+function updateHeaderGpa() {
+  const g = overallGpa();
+  document.getElementById('headerGpa').textContent = g !== null ? g.toFixed(2) : '—';
+}
+
+// ── Summary ────────────────────────────────────────────────
+function renderSummary() {
+  const el = document.getElementById('summaryContent');
+  const keys = Object.keys(data);
+  updateHeaderGpa();
+
+  if (!keys.length) {
+    el.innerHTML = '<div class="empty"><span class="icon">📊</span>No subjects to summarise yet.</div>';
+    return;
+  }
+
+  const rows = keys.map(name => {
+    const a = avg(data[name]);
+    const g = letterGrade(a);
+    const gpa = gpaPoints(a);
+    const count = data[name].length;
+    return `<tr>
+      <td>${escHtml(name)}</td>
+      <td>${count ? a + '%' : '—'}</td>
+      <td><span class="gpa-pill grade-${g}">${g}</span></td>
+      <td>${count ? gpa.toFixed(1) : '—'}</td>
+      <td style="color:var(--muted)">${count}</td>
+    </tr>`;
+  }).join('');
+
+  const gpa = overallGpa();
+  el.innerHTML = `
+    <table class="summary-table">
+      <thead><tr>
+        <th>Subject</th><th>Average</th><th>Grade</th><th>GPA</th><th>Assessments</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="margin-top:1rem;padding:.75rem 1rem;background:var(--surface);border-radius:8px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Overall GPA</span>
+      <span style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:var(--accent);">${gpa !== null ? gpa.toFixed(2) : '—'} <span style="font-size:.75rem;color:var(--muted);font-family:'DM Mono'">/ 4.0</span></span>
+    </div>`;
+}
+
+// ── Add Subject ────────────────────────────────────────────
+function addSubject() {
+  const name = document.getElementById('newSubjectName').value.trim();
+  if (!name) { toast('Please enter a subject name.'); return; }
+  if (data[name] !== undefined) { toast('Subject already exists!'); return; }
+  data[name] = [];
+  save();
+  document.getElementById('newSubjectName').value = '';
+  toast('Subject "' + name + '" added!');
+  switchTabTo('dashboard');
+  renderDashboard();
+}
+
+function switchTabTo(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  const tabs = document.querySelectorAll('.tab');
+  const map = { dashboard: 0, summary: 1, add: 2 };
+  if (map[name] !== undefined) tabs[map[name]].classList.add('active');
+}
+
+// ── Detail view ────────────────────────────────────────────
+function openDetail(name) {
+  currentSubject = name;
+  document.getElementById('detailTitle').textContent = name;
+  showPanel('detail');
+  renderDetail();
+}
+
+function renderDetail() {
+  if (!currentSubject) return;
+  const marks = data[currentSubject] || [];
+  const a = avg(marks);
+  const g = letterGrade(a);
+  const gp = gpaPoints(a);
+
+  document.getElementById('dAvg').textContent   = marks.length ? a + '%' : '—';
+  document.getElementById('dGrade').textContent = marks.length ? g : '—';
+  document.getElementById('dGpa').textContent   = marks.length ? gp.toFixed(1) : '—';
+
+  const list = document.getElementById('marksList');
+  const none = document.getElementById('noMarks');
+
+  if (!marks.length) {
+    list.innerHTML = ''; none.style.display = 'block'; return;
+  }
+  none.style.display = 'none';
+  list.innerHTML = marks.map((m,i) =>
+    `<div class="mark-chip">
+      <span>A${i+1}: ${m}%</span>
+      <button onclick="removeMark(${i})" title="Remove">✕</button>
+    </div>`
+  ).join('');
+  updateHeaderGpa();
+}
+
+function addMark() {
+  const input = document.getElementById('newMark');
+  const val = parseFloat(input.value);
+  if (isNaN(val) || val < 0 || val > 100) { toast('Enter a valid mark (0–100).'); return; }
+  data[currentSubject].push(val);
+  save(); input.value = '';
+  renderDetail();
+  toast('Mark added!');
+}
+
+function removeMark(index) {
+  data[currentSubject].splice(index, 1);
+  save(); renderDetail();
+  toast('Mark removed.');
+}
+
+function clearMarks() {
+  confirm2('Clear all marks?', 'All assessments for "' + currentSubject + '" will be deleted.', () => {
+    data[currentSubject] = [];
+    save(); renderDetail();
+    toast('Marks cleared.');
+  });
+}
+
+function deleteCurrentSubject() {
+  confirm2('Delete subject?', '"' + currentSubject + '" and all its marks will be permanently deleted.', () => {
+    delete data[currentSubject];
+    save(); currentSubject = null;
+    switchTabTo('dashboard');
+    renderDashboard();
+    toast('Subject deleted.');
+  });
+}
+
+function confirmDelete(name) {
+  confirm2('Delete "' + name + '"?', 'All marks for this subject will be lost.', () => {
+    delete data[name]; save(); renderDashboard(); toast('Subject deleted.');
+  });
+}
+
+function backToDash() { switchTabTo('dashboard'); renderDashboard(); }
+
+// ── Modal ──────────────────────────────────────────────────
+let confirmCallback = null;
+function confirm2(title, msg, cb) {
+  confirmCallback = cb;
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  document.getElementById('confirmModal').classList.add('open');
+  document.getElementById('confirmYes').onclick = () => { closeModal(); cb(); };
+}
+function closeModal() { document.getElementById('confirmModal').classList.remove('open'); }
+
+// ── Toast ──────────────────────────────────────────────────
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ── Util ───────────────────────────────────────────────────
+function escHtml(s) { return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ── Enter key shortcuts ────────────────────────────────────
+document.getElementById('newSubjectName').addEventListener('keydown', e => { if(e.key==='Enter') addSubject(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('panel-detail').classList.contains('active')) addMark();
+});
+
+// ── Init ───────────────────────────────────────────────────
+renderDashboard();
+</script>
+</body>
+</html>

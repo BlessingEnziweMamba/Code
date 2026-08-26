@@ -1,0 +1,26 @@
+body{
+font-family: Tahoma, Georgia, Verdana;
+}
+html, body {
+    width: 100%;
+}
+table {
+    margin: 0 auto;
+    background-color: #FDF3E7;
+}
+
+.td{
+	text-align:center;
+	width: 350pt;
+	height: 150pt;
+}
+thead{
+	text-align:center;
+	font-size: 16pt;
+	font-weight: bold;
+}
+td{
+	border: 1px solid black;
+	 margin: 0 auto;
+    padding:10px;
+}

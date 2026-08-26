@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Municipality Portal — Flowchart</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0d1117;
+    color: #e6edf3;
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: #58a6ff;
+    margin-bottom: 6px;
+  }
+  .subtitle {
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: #8b949e;
+    margin-bottom: 40px;
+  }
+
+  .chart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  /* ── Shapes ── */
+  .node {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 10px 20px;
+    position: relative;
+    transition: transform 0.15s, box-shadow 0.15s;
+    cursor: default;
+    min-width: 240px;
+    max-width: 320px;
+  }
+  .node:hover { transform: scale(1.04); }
+
+  .terminal {
+    background: #238636;
+    color: #fff;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 12px 36px;
+    box-shadow: 0 0 20px #23863660;
+    min-width: 160px;
+    max-width: 220px;
+  }
+  .terminal.end { background: #da3633; box-shadow: 0 0 20px #da363360; }
+
+  .process {
+    background: #161b22;
+    border: 1.5px solid #30363d;
+    border-radius: 8px;
+    color: #e6edf3;
+    padding: 11px 22px;
+    box-shadow: 0 2px 8px #00000050;
+  }
+  .process:hover { border-color: #58a6ff; box-shadow: 0 0 12px #58a6ff30; }
+
+  .decision {
+    background: #1c2128;
+    border: 1.5px solid #d29922;
+    color: #e3b341;
+    font-weight: 600;
+    transform: none;
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    width: 220px;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.73rem;
+    margin: 0 auto;
+    transition: filter 0.15s;
+  }
+  .decision:hover { filter: brightness(1.2); transform: none; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+
+  .io {
+    background: #0d419d;
+    border: 1.5px solid #388bfd;
+    border-radius: 4px;
+    color: #a5d6ff;
+    transform: skewX(-12deg);
+    padding: 10px 28px;
+  }
+  .io span { display: inline-block; transform: skewX(12deg); }
+
+  /* ── Arrows ── */
+  .arrow {
+    width: 2px;
+    background: #30363d;
+    height: 28px;
+    position: relative;
+    margin: 0 auto;
+  }
+  .arrow::after {
+    content: '';
+    position: absolute;
+    bottom: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 8px solid #30363d;
+  }
+  .arrow.branch { background: #d29922; }
+  .arrow.branch::after { border-top-color: #d29922; }
+
+  /* ── Branch row ── */
+  .branch-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 680px;
+    margin: 4px 0;
+    position: relative;
+  }
+  .branch-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    flex: 1;
+    min-width: 100px;
+  }
+  .branch-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: #8b949e;
+    margin-bottom: 4px;
+    background: #1c2128;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 2px 8px;
+  }
+  .service-box {
+    background: #0f2942;
+    border: 1.5px solid #388bfd;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.68rem;
+    font-family: 'DM Mono', monospace;
+    color: #79c0ff;
+    text-align: center;
+    width: 100%;
+    min-height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .h-line {
+    height: 2px;
+    background: #d29922;
+    align-self: flex-start;
+    margin-top: 28px;
+    width: 100%;
+    max-width: 580px;
+  }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 40px;
+    padding: 16px 24px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: #8b949e;
+  }
+  .leg-swatch {
+    width: 28px;
+    height: 16px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+
+<h1>🏛 Municipality General Info &amp; Services Portal</h1>
+<p class="subtitle">SYSTEM FLOWCHART — CIVILIAN INTERACTION</p>
+
+<div class="chart">
+
+  <!-- START -->
+  <div class="node terminal">▶ START</div>
+  <div class="arrow"></div>
+
+  <!-- DISPLAY WELCOME -->
+  <div class="node process">Display Welcome Screen &amp; Main Menu</div>
+  <div class="arrow"></div>
+
+  <!-- INPUT -->
+  <div class="node io"><span>Civilian Enters Choice (0–4)</span></div>
+  <div class="arrow branch"></div>
+
+  <!-- DECISION: valid? -->
+  <div class="node decision">Valid Input?</div>
+
+  <!-- NO branch (invalid) -->
+  <div style="display:flex;align-items:flex-start;width:100%;max-width:660px;gap:0;margin-top:0">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+      <div class="branch-label">YES</div>
+      <div class="arrow branch" style="height:18px"></div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+      <div class="branch-label">NO</div>
+      <div class="arrow branch" style="height:18px"></div>
+      <div class="node process" style="background:#2d1217;border-color:#f85149;color:#ff7b72;max-width:200px;font-size:0.72rem">Show Error Message</div>
+      <div class="arrow" style="height:18px;background:#f85149"></div>
+      <div class="node process" style="background:#2d1217;border-color:#f85149;color:#ff7b72;max-width:200px;font-size:0.72rem">Return to Main Menu</div>
+    </div>
+  </div>
+
+  <div class="arrow branch"></div>
+
+  <!-- DECISION: which choice? -->
+  <div class="node decision">Which Choice?</div>
+  <div class="arrow branch" style="height:16px"></div>
+
+  <!-- 5 branches -->
+  <div class="branch-row">
+    <div class="branch-col">
+      <div class="branch-label">[1] Services</div>
+      <div class="arrow" style="height:16px"></div>
+      <div class="service-box">Show Services List</div>
+      <div class="arrow" style="height:14px"></div>
+      <div class="service-box">Civilian Selects Service</div>
+      <div class="arrow" style="height:14px"></div>
+      <div class="service-box">Display Details, Contact &amp; Steps</div>
+    </div>
+    <div class="branch-col">
+      <div class="branch-label">[2] FAQs</div>
+      <div class="arrow" style="height:16px"></div>
+      <div class="service-box">Display All FAQs</div>
+    </div>
+    <div class="branch-col">
+      <div class="branch-label">[3] Emergency</div>
+      <div class="arrow" style="height:16px"></div>
+      <div class="service-box">Display Emergency Contact Numbers</div>
+    </div>
+    <div class="branch-col">
+      <div class="branch-label">[4] About</div>
+      <div class="arrow" style="height:16px"></div>
+      <div class="service-box">Display Portal Info &amp; Links</div>
+    </div>
+    <div class="branch-col">
+      <div class="branch-label">[0] Exit</div>
+      <div class="arrow" style="height:16px"></div>
+      <div class="service-box" style="border-color:#da3633;color:#ff7b72">Show Farewell Message</div>
+    </div>
+  </div>
+
+  <div class="arrow branch"></div>
+
+  <!-- DECISION: return or exit? -->
+  <div class="node decision">User Exits?</div>
+
+  <div style="display:flex;align-items:flex-start;width:100%;max-width:500px;gap:0;margin-top:0">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+      <div class="branch-label">NO — press ENTER</div>
+      <div class="arrow branch" style="height:18px"></div>
+      <div class="node process" style="font-size:0.72rem;max-width:180px">Return to Main Menu ↺</div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+      <div class="branch-label">YES — choice [0]</div>
+      <div class="arrow branch" style="height:18px"></div>
+    </div>
+  </div>
+
+  <div class="arrow" style="height:22px"></div>
+  <!-- END -->
+  <div class="node terminal end">■ END</div>
+
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="legend-item">
+    <div class="leg-swatch" style="background:#238636;border-radius:50px"></div>
+    Terminal (Start/End)
+  </div>
+  <div class="legend-item">
+    <div class="leg-swatch" style="background:#161b22;border:1.5px solid #30363d"></div>
+    Process
+  </div>
+  <div class="legend-item">
+    <div class="leg-swatch" style="background:#1c2128;border:1.5px solid #d29922"></div>
+    Decision (◇)
+  </div>
+  <div class="legend-item">
+    <div class="leg-swatch" style="background:#0d419d;border:1.5px solid #388bfd"></div>
+    Input / Output
+  </div>
+  <div class="legend-item">
+    <div class="leg-swatch" style="background:#0f2942;border:1.5px solid #388bfd"></div>
+    Sub-process / Action
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Municipality Portal — Algorithm</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0d1117;
+    color: #e6edf3;
+    font-family: 'DM Mono', monospace;
+    padding: 40px 24px;
+    line-height: 1.8;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #58a6ff;
+    text-align: center;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .sub {
+    text-align: center;
+    font-size: 0.72rem;
+    color: #8b949e;
+    margin-bottom: 36px;
+  }
+
+  .card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 24px 28px;
+    max-width: 780px;
+    margin: 0 auto 24px;
+  }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #79c0ff;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 14px;
+    border-bottom: 1px solid #21262d;
+    padding-bottom: 8px;
+  }
+
+  /* pseudo-code */
+  pre {
+    background: #010409;
+    border: 1px solid #21262d;
+    border-radius: 8px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    font-size: 0.8rem;
+    color: #c9d1d9;
+    line-height: 2;
+  }
+
+  /* syntax colours */
+  .kw  { color: #ff7b72; }   /* keywords: BEGIN END IF ELSE WHILE CALL */
+  .fn  { color: #d2a8ff; }   /* function names */
+  .str { color: #a5d6ff; }   /* strings / labels */
+  .cmt { color: #8b949e; font-style: italic; }  /* comments */
+  .num { color: #e3b341; }   /* step numbers */
+
+  /* complexity table */
+  table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  th {
+    background: #21262d;
+    color: #8b949e;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 8px 12px;
+    text-align: left;
+  }
+  td { padding: 8px 12px; border-bottom: 1px solid #21262d; color: #c9d1d9; }
+  tr:last-child td { border-bottom: none; }
+  .badge {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 20px;
+    font-size: 0.68rem;
+    font-weight: 600;
+  }
+  .green  { background: #1f3d26; color: #56d364; }
+  .yellow { background: #2d2208; color: #e3b341; }
+  .blue   { background: #0d2a45; color: #79c0ff; }
+</style>
+</head>
+<body>
+
+<h1>🏛 Municipality Info &amp; Services Portal</h1>
+<p class="sub">ALGORITHM DOCUMENT — CIVILIAN-FACING SYSTEM</p>
+
+<!-- ── 1. Problem Statement ── -->
+<div class="card">
+  <div class="card-title">1. Problem Statement</div>
+  <p style="font-size:0.8rem;color:#c9d1d9">
+    Design a Python console application that allows civilians to access general
+    municipal information and services. The system must present a navigable menu,
+    route the user to the correct section, display relevant service information,
+    and loop until the user chooses to exit.
+  </p>
+</div>
+
+<!-- ── 2. Inputs / Outputs ── -->
+<div class="card">
+  <div class="card-title">2. Inputs &amp; Outputs</div>
+  <table>
+    <tr><th>Type</th><th>Description</th><th>Example</th></tr>
+    <tr><td>INPUT</td><td>Main menu choice (integer string)</td><td>"1", "2", "0"</td></tr>
+    <tr><td>INPUT</td><td>Service sub-menu choice</td><td>"3" → Roads &amp; Stormwater</td></tr>
+    <tr><td>INPUT</td><td>ENTER key to return</td><td>press ENTER</td></tr>
+    <tr><td>OUTPUT</td><td>Formatted text menus</td><td>Menu with numbered options</td></tr>
+    <tr><td>OUTPUT</td><td>Service detail (contact, steps)</td><td>Contact + 4-step guide</td></tr>
+    <tr><td>OUTPUT</td><td>FAQs, Emergency contacts, About</td><td>Printed to terminal</td></tr>
+    <tr><td>OUTPUT</td><td>Error message on invalid input</td><td>"⚠ Invalid choice"</td></tr>
+  </table>
+</div>
+
+<!-- ── 3. Main Algorithm (Pseudocode) ── -->
+<div class="card">
+  <div class="card-title">3. Main Algorithm (Pseudocode)</div>
+<pre>
+<span class="kw">BEGIN</span>  MunicipalityPortal
+
+  <span class="cmt">// ── Initialisation ──────────────────────────────────────</span>
+  <span class="kw">LOAD</span>  SERVICES_DATA    <span class="cmt">// dictionary: key → {name, description, contact, steps}</span>
+  <span class="kw">LOAD</span>  FAQS_LIST         <span class="cmt">// list of (question, answer) tuples</span>
+  <span class="kw">LOAD</span>  EMERGENCY_CONTACTS <span class="cmt">// dictionary: service → phone number</span>
+
+  <span class="cmt">// ── Main Loop ───────────────────────────────────────────</span>
+  running ← <span class="kw">TRUE</span>
+
+  <span class="kw">WHILE</span>  running  <span class="kw">DO</span>
+
+      <span class="fn">DisplayMainMenu</span>()          <span class="cmt">// print numbered options 0–4</span>
+      choice ← <span class="fn">ReadInput</span>()       <span class="cmt">// get civilian's keypress</span>
+
+      <span class="kw">IF</span>  choice = <span class="str">"1"</span>  <span class="kw">THEN</span>
+          <span class="fn">BrowseServices</span>()       <span class="cmt">// → sub-algorithm A</span>
+
+      <span class="kw">ELSE IF</span>  choice = <span class="str">"2"</span>  <span class="kw">THEN</span>
+          <span class="fn">DisplayFAQs</span>()          <span class="cmt">// → sub-algorithm B</span>
+
+      <span class="kw">ELSE IF</span>  choice = <span class="str">"3"</span>  <span class="kw">THEN</span>
+          <span class="fn">DisplayEmergencyContacts</span>()  <span class="cmt">// → sub-algorithm C</span>
+
+      <span class="kw">ELSE IF</span>  choice = <span class="str">"4"</span>  <span class="kw">THEN</span>
+          <span class="fn">DisplayAbout</span>()         <span class="cmt">// → sub-algorithm D</span>
+
+      <span class="kw">ELSE IF</span>  choice = <span class="str">"0"</span>  <span class="kw">THEN</span>
+          <span class="fn">PrintFarewellMessage</span>()
+          running ← <span class="kw">FALSE</span>        <span class="cmt">// exit the loop</span>
+
+      <span class="kw">ELSE</span>
+          <span class="fn">PrintError</span>(<span class="str">"Invalid choice. Try again."</span>)
+          <span class="fn">WaitForEnter</span>()
+
+      <span class="kw">END IF</span>
+
+  <span class="kw">END WHILE</span>
+
+<span class="kw">END</span>  MunicipalityPortal
+</pre>
+</div>
+
+<!-- ── 4. Sub-Algorithm A ── -->
+<div class="card">
+  <div class="card-title">Sub-Algorithm A — Browse Services</div>
+<pre>
+<span class="kw">BEGIN</span>  BrowseServices
+
+  browsing ← <span class="kw">TRUE</span>
+
+  <span class="kw">WHILE</span>  browsing  <span class="kw">DO</span>
+
+      <span class="fn">PrintServicesList</span>(SERVICES_DATA)   <span class="cmt">// numbered list of services</span>
+      svcChoice ← <span class="fn">ReadInput</span>()
+
+      <span class="kw">IF</span>  svcChoice = <span class="str">"0"</span>  <span class="kw">THEN</span>
+          browsing ← <span class="kw">FALSE</span>               <span class="cmt">// return to main menu</span>
+
+      <span class="kw">ELSE IF</span>  svcChoice ∈ SERVICES_DATA.keys  <span class="kw">THEN</span>
+          service ← SERVICES_DATA[svcChoice]
+          <span class="fn">DisplayServiceDetail</span>(service)     <span class="cmt">// show name, contact, steps</span>
+          <span class="fn">WaitForEnter</span>()
+
+      <span class="kw">ELSE</span>
+          <span class="fn">PrintError</span>(<span class="str">"Invalid selection."</span>)
+          <span class="fn">WaitForEnter</span>()
+
+      <span class="kw">END IF</span>
+
+  <span class="kw">END WHILE</span>
+
+<span class="kw">END</span>  BrowseServices
+
+
+<span class="kw">BEGIN</span>  DisplayServiceDetail(service)
+  <span class="fn">Print</span>(service.name, service.description)
+  <span class="fn">Print</span>(service.contact, service.hours)
+  <span class="kw">FOR</span>  i = 1 <span class="kw">TO</span> LENGTH(service.steps)  <span class="kw">DO</span>
+      <span class="fn">Print</span>(<span class="str">"Step "</span> + i + <span class="str">": "</span> + service.steps[i])
+  <span class="kw">END FOR</span>
+<span class="kw">END</span>  DisplayServiceDetail
+</pre>
+</div>
+
+<!-- ── 5. Sub-Algorithms B / C / D ── -->
+<div class="card">
+  <div class="card-title">Sub-Algorithms B, C &amp; D — FAQs / Emergency / About</div>
+<pre>
+<span class="kw">BEGIN</span>  DisplayFAQs
+  <span class="kw">FOR EACH</span>  (question, answer) <span class="kw">IN</span> FAQS_LIST  <span class="kw">DO</span>
+      <span class="fn">Print</span>(question)
+      <span class="fn">Print</span>(answer)
+  <span class="kw">END FOR</span>
+  <span class="fn">WaitForEnter</span>()
+<span class="kw">END</span>  DisplayFAQs
+
+
+<span class="kw">BEGIN</span>  DisplayEmergencyContacts
+  <span class="kw">FOR EACH</span>  (service, number) <span class="kw">IN</span> EMERGENCY_CONTACTS  <span class="kw">DO</span>
+      <span class="fn">Print</span>(service, number)
+  <span class="kw">END FOR</span>
+  <span class="fn">WaitForEnter</span>()
+<span class="kw">END</span>  DisplayEmergencyContacts
+
+
+<span class="kw">BEGIN</span>  DisplayAbout
+  <span class="fn">Print</span>(<span class="str">"Portal description, website, email, last updated."</span>)
+  <span class="fn">WaitForEnter</span>()
+<span class="kw">END</span>  DisplayAbout
+</pre>
+</div>
+
+<!-- ── 6. Complexity ── -->
+<div class="card">
+  <div class="card-title">6. Algorithm Analysis</div>
+  <table>
+    <tr><th>Component</th><th>Time Complexity</th><th>Space Complexity</th><th>Notes</th></tr>
+    <tr>
+      <td>Main loop</td>
+      <td><span class="badge yellow">O(n)</span></td>
+      <td><span class="badge green">O(1)</span></td>
+      <td>n = number of interactions</td>
+    </tr>
+    <tr>
+      <td>Display services list</td>
+      <td><span class="badge green">O(s)</span></td>
+      <td><span class="badge green">O(1)</span></td>
+      <td>s = number of services (constant 6)</td>
+    </tr>
+    <tr>
+      <td>Display FAQs</td>
+      <td><span class="badge green">O(f)</span></td>
+      <td><span class="badge green">O(1)</span></td>
+      <td>f = number of FAQs (constant 5)</td>
+    </tr>
+    <tr>
+      <td>Dictionary lookup</td>
+      <td><span class="badge green">O(1)</span></td>
+      <td><span class="badge green">O(1)</span></td>
+      <td>Hash map — constant time lookup</td>
+    </tr>
+    <tr>
+      <td>Overall program</td>
+      <td><span class="badge blue">O(n)</span></td>
+      <td><span class="badge green">O(1)</span></td>
+      <td>Linear in user interactions; constant extra space</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ── 7. Data Structures ── -->
+<div class="card">
+  <div class="card-title">7. Data Structures Used</div>
+  <table>
+    <tr><th>Structure</th><th>Python Type</th><th>Purpose</th></tr>
+    <tr><td>Services catalogue</td><td>dict of dicts</td><td>Key=choice, Value=service info object</td></tr>
+    <tr><td>FAQs</td><td>list of tuples</td><td>Ordered (question, answer) pairs</td></tr>
+    <tr><td>Emergency contacts</td><td>dict</td><td>Service name → phone number</td></tr>
+    <tr><td>Service steps</td><td>list of str</td><td>Ordered how-to instructions</td></tr>
+    <tr><td>Running flag</td><td>bool</td><td>Controls main loop termination</td></tr>
+  </table>
+</div>
+
+</body>
+</html>
